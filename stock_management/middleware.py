@@ -3,6 +3,8 @@ import json
 import requests
 from django.http import JsonResponse
 
+from stock_management.settings import ENV_VARIABLE
+
 
 class SimpleMiddleware:
     def __init__(self, get_response):
@@ -11,8 +13,10 @@ class SimpleMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         authentication_token = request.headers.get("Authentication")
+
         if authentication_token:
-            url = f"http://127.0.0.1:5001/v1/validateToken"
+            host = ENV_VARIABLE.get("Authentication-Microservice", "host")
+            url = f"{host}/v1/validateToken"
 
             payload = {}
             headers = {"Authorization": f"Bearer {authentication_token}"}
@@ -46,7 +50,6 @@ class SimpleMiddleware:
             ),
             status=401,
         )
-
 
     def __call__(self, request):
         # Code to be executed for each request before

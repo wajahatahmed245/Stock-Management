@@ -9,9 +9,17 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import configparser
 import os
 from pathlib import Path
 
+# method to read data
+def get_all_env_variables():
+    get_env_value = configparser.ConfigParser()
+    get_env_value.read_file(open(r"{file_path}configuration.cfg".format(file_path=__file__[:-11])))
+    return get_env_value
+
+ENV_VARIABLE = get_all_env_variables()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
