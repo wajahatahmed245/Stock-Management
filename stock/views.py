@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render
@@ -9,9 +11,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from stock.models import Snippet, Product
-from stock.serializers import SnippetSerializer, ProductSerializer
+from stock.serializers import SnippetSerializer, ProductSerializer, StockSerializer
 from stock.utils import getImei
 from stock_management.middleware import SimpleMiddleware
+from utils.jwt_setter import TokenManagement
 
 
 def index(request):
@@ -44,6 +47,8 @@ def stock_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
+        global authentication_token
+        authentication_token = request.headers.get("Authentication")
         product_data = dict(color=request.data['color'], size=request.data['size'],
                             stuff=request.data['stuff'], type=request.data['type'],
                             brand_name=request.data['brand_name'], no_of_pieces=request.data['no_of_pieces'],
@@ -52,6 +57,18 @@ def stock_list(request):
         serializer = ProductSerializer(data=product_data)
         if serializer.is_valid():
             serializer.save()
-
+            post_save.connect(stock_list, sender=Product)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@receiver(post_save, sender=Product)
+def insert_stock(sender, instance, **kwargs):
+    token_management = TokenManagement()
+    data = authentication_token
+    user_info = token_management.get_info(authentication_token=data)
+    stock_data = dict(created_by=user_info[0], product_IMIE=instance.product_IMIE, product=instance.id)
+    serializer = StockSerializer(data=stock_data)
+    if serializer.is_valid():
+        serializer.save()
+    return serializer.data
