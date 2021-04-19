@@ -1,9 +1,9 @@
-from random import randint
-from django.dispatch import Signal
+import string
+import random
 
 
-def getImei(n):
-    range_start = 10 ** (n - 1)
-    range_end = (10 ** n) - 1
-    return randint(range_start, range_end)
-
+def get_sku(product_type, size, stuff, color):
+    return ("".join([product_type[0:3].upper()]) + "-" +
+            "".join([random.choice(string.digits) for i in range(9)]) + "-" +
+            "".join([size.upper()]) + "-" + ("".join([stuff[0:3].upper()])) + "-" +
+            ("".join([color[0:3].upper()])))

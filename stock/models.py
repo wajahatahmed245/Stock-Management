@@ -1,10 +1,7 @@
-from datetime import datetime
-
 from django.db import models
 
-# Create your models here.
 
-from stock.utils import getImei
+# Create your models here.
 
 
 class Snippet(models.Model):
@@ -13,33 +10,28 @@ class Snippet(models.Model):
     linenos = models.BooleanField(default=False)
 
 
-class ProductType(models.Model):
-    product_name = models.CharField(max_length=50)
-
-
-class Season(models.Model):
-    season = models.CharField(max_length=50)
-
-
 class Product(models.Model):
     color = models.CharField(max_length=50)
     size = models.CharField(max_length=50)
     stuff = models.CharField(max_length=50)
     type = models.CharField(max_length=50)
     brand_name = models.CharField(max_length=50)
-    no_of_pieces = models.IntegerField(max_length=20)
-    product_IMIE = models.IntegerField(max_length=20, unique=True)
-    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE)
-    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    no_of_pieces = models.IntegerField()
+    product_sku = models.TextField(unique=True)
+    product_type = models.CharField(max_length=25)
+    season = models.CharField(max_length=25)
 
 
 class Stock(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=25)
-    product_IMIE = models.IntegerField(max_length=15, unique=True)
-    sold = models.BooleanField
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_sku = models.TextField(unique=True)
+    sold = models.BooleanField()
+    product_id = models.ForeignKey(Product, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.created_by
 
 
 class TransferredStock(models.Model):
