@@ -11,10 +11,12 @@ from rest_framework.response import Response
 from stock.models import Snippet
 from stock.models import Product
 from stock.models import Stock
+from stock.models import TransferredStock
 
 from stock.serializers import SnippetSerializer
 from stock.serializers import ProductSerializer
 from stock.serializers import StockSerializer
+from stock.serializers import TransferredStockSerializer
 
 from stock.utils import get_sku
 
@@ -70,12 +72,12 @@ def product_list(request):
             season=request.data["season"],
             product_sku=get_sku(type, size, stuff, color),
         )
-        serializer = ProductSerializer(data=product_data)
-        if serializer.is_valid():
-            serializer.save()
+        product = ProductSerializer(data=product_data)
+        if product.is_valid():
+            product.save()
             post_save.connect(product_list, sender=Product)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(product.data, status=status.HTTP_201_CREATED)
+        return Response(product.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @receiver(post_save, sender=Product)
@@ -89,11 +91,11 @@ def insert_stock(sender, instance, **kwargs):
         product_id=instance.id,
         sold=sold,
     )
-    serializer = StockSerializer(data=stock_data)
-    if serializer.is_valid():
-        serializer.save()
-        return serializer.data
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    stock = StockSerializer(data=stock_data)
+    if stock.is_valid():
+        stock.save()
+        return stock.data
+    return Response(stock.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
@@ -105,3 +107,13 @@ def stock_list(request):
         stock_get = Stock.objects.filter(created_by=user_info[0])
         stock = StockSerializer(stock_get, many=True)
         return Response(stock.data)
+
+
+@api_view(["POST"])
+def stock_transfer(request):
+    if request.method == "POST":
+        transfer_stock = TransferredStockSerializer(data=request.data)
+        if transfer_stock.is_valid():
+            transfer_stock.save()
+            return Response(transfer_stock.data, status=status.HTTP_201_CREATED)
+        return Response(transfer_stock.errors, status=status.HTTP_400_BAD_REQUEST)

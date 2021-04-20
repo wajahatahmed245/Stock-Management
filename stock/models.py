@@ -39,4 +39,4 @@ class TransferredStock(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     seller = models.CharField(max_length=25)
     vendor = models.CharField(max_length=25)
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+    stock_id = models.ForeignKey(Stock, on_delete=models.CASCADE)

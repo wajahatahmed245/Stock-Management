@@ -52,4 +52,4 @@ class TransferredStockSerializer(serializers.ModelSerializer):
             "updated_at",
             "seller",
             "vendor",
-            "stock")
+            "stock_id")
