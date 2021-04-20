@@ -101,9 +101,9 @@ def insert_stock(sender, instance, **kwargs):
 @api_view(["GET"])
 def stock_list(request):
     if request.method == "GET":
-        authentication_token = request.headers.get("Authentication")
+        token = request.headers.get("Authentication")
         token_management = TokenManagement()
-        user_info = token_management.get_info(authentication_token=authentication_token)
+        user_info = token_management.get_info(authentication_token=token)
         stock_get = Stock.objects.filter(created_by=user_info[0])
         stock = StockSerializer(stock_get, many=True)
         return Response(stock.data)
@@ -117,3 +117,19 @@ def stock_transfer(request):
             transfer_stock.save()
             return Response(transfer_stock.data, status=status.HTTP_201_CREATED)
         return Response(transfer_stock.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def get_stock_transfer(request):
+    if request.method == "GET":
+        token = request.headers.get("Authentication")
+        token_management = TokenManagement()
+        user_info = token_management.get_info(authentication_token=token)
+        stock_get = TransferredStock.objects.filter(seller=user_info[0])
+        if stock_get:
+            transferred_stock = TransferredStockSerializer(stock_get, many=True)
+            return Response(transferred_stock.data)
+
+        transfer_stock = TransferredStock.objects.filter(vendor=user_info[0])
+        transferred_stock = TransferredStockSerializer(transfer_stock, many=True)
+        return Response(transferred_stock.data)
