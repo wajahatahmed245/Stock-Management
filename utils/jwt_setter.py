@@ -1,5 +1,7 @@
 from utils.constant import TIME_ERROR, NO_RESPONSE_ON_INSERT
+
 from utils.interface import RedisInterface
+
 from utils.settings import REDIS_INSTANCE
 
 

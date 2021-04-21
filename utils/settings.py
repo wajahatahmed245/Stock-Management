@@ -1,5 +1,4 @@
 import configparser
-import stock_management
 import redis as redis
 
 

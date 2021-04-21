@@ -20,7 +20,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "color",
-            "size",
+            "product_size",
             "stuff",
             "type",
             "brand_name",

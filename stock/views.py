@@ -1,7 +1,3 @@
-from django.db.models.signals import post_save
-
-from django.dispatch import receiver
-
 from django.http import HttpResponse
 
 from rest_framework import status
@@ -9,7 +5,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from stock.models import Snippet
-from stock.models import Product
 from stock.models import Stock
 from stock.models import TransferredStock
 
@@ -45,57 +40,82 @@ def snippet_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET", "POST"])
+@api_view(["POST"])
 def product_list(request):
-    if request.method == "GET":
-        product = Product.objects.all()
-        serializer = ProductSerializer(product, many=True)
-        return Response(serializer.data)
-
-    elif request.method == "POST":
-        global authentication_token, sold
+    if request.method == "POST":
         authentication_token = request.headers.get("Authentication")
         sold = request.data["sold"]
         product_type = request.data["product_type"]
         color = request.data["color"]
-        size = request.data["size"]
         stuff = request.data["stuff"]
         type = request.data["type"]
-        product_data = dict(
-            color=color,
-            size=size,
-            stuff=stuff,
-            type=type,
-            brand_name=request.data["brand_name"],
-            no_of_pieces=request.data["no_of_pieces"],
-            product_type=product_type,
-            season=request.data["season"],
-            product_sku=get_sku(type, size, stuff, color),
-        )
-        product = ProductSerializer(data=product_data)
-        if product.is_valid():
-            product.save()
-            post_save.connect(product_list, sender=Product)
-            return Response(product.data, status=status.HTTP_201_CREATED)
+        brand_name = request.data["brand_name"]
+        no_of_pieces = request.data["no_of_pieces"]
+        season = request.data["season"]
+        if product_type == 2:
+            waist = request.data["waist"]
+            length = request.data["length"]
+            size_data = {"waist": waist, "length": length}
+            product_data = dict(
+                color=color,
+                product_size=str(size_data),
+                stuff=stuff,
+                type=type,
+                brand_name=request.data["brand_name"],
+                no_of_pieces=request.data["no_of_pieces"],
+                product_type=product_type,
+                season=request.data["season"],
+                product_sku=get_sku(type, stuff, color),
+            )
+            product = ProductSerializer(data=product_data)
+            if product.is_valid():
+                product.save()
+
+                token_management = TokenManagement()
+                data = authentication_token
+                user_info = token_management.get_info(authentication_token=data)
+                stock_data = dict(
+                    created_by=user_info[0],
+                    product_sku=product.instance.product_sku,
+                    product_id=product.instance.id,
+                    sold=sold,
+                )
+                stock = StockSerializer(data=stock_data)
+                if stock.is_valid():
+                    stock.save()
+                    data = dict(product_data=product.data, stock_data=stock.data)
+                return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            product_data = dict(
+                color=color,
+                product_size=request.data["size"],
+                stuff=stuff,
+                type=type,
+                brand_name=brand_name,
+                no_of_pieces=no_of_pieces,
+                product_type=product_type,
+                season=season,
+                product_sku=get_sku(type, stuff, color),
+            )
+            product = ProductSerializer(data=product_data)
+            if product.is_valid():
+                product.save()
+
+            token_management = TokenManagement()
+            data = authentication_token
+            user_info = token_management.get_info(authentication_token=data)
+            stock_data = dict(
+                created_by=user_info[0],
+                product_sku=product.instance.product_sku,
+                product_id=product.instance.id,
+                sold=sold,
+            )
+            stock = StockSerializer(data=stock_data)
+            if stock.is_valid():
+                stock.save()
+                data = dict(product_data=product.data, stock_data=stock.data)
+            return Response(data, status=status.HTTP_201_CREATED)
         return Response(product.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@receiver(post_save, sender=Product)
-def insert_stock(sender, instance, **kwargs):
-    token_management = TokenManagement()
-    data = authentication_token
-    user_info = token_management.get_info(authentication_token=data)
-    stock_data = dict(
-        created_by=user_info[0],
-        product_sku=instance.product_sku,
-        product_id=instance.id,
-        sold=sold,
-    )
-    stock = StockSerializer(data=stock_data)
-    if stock.is_valid():
-        stock.save()
-        return stock.data
-    return Response(stock.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])

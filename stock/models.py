@@ -10,16 +10,21 @@ class Snippet(models.Model):
     linenos = models.BooleanField(default=False)
 
 
+class Product_type(models.Model):
+    product_name = models.CharField(max_length=20)
+
+
 class Product(models.Model):
     color = models.CharField(max_length=50)
-    size = models.CharField(max_length=50)
+    product_size = models.TextField(max_length=50)
     stuff = models.CharField(max_length=50)
     type = models.CharField(max_length=50)
     brand_name = models.CharField(max_length=50)
     no_of_pieces = models.IntegerField()
     product_sku = models.TextField(unique=True)
-    product_type = models.CharField(max_length=25)
     season = models.CharField(max_length=25)
+    product_type = models.ForeignKey(Product_type, on_delete=models.CASCADE)
+
 
 
 class Stock(models.Model):
