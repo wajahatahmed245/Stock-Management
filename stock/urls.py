@@ -8,6 +8,7 @@ urlpatterns = [
     path('product/add/', views.product_list),
     path('stock/', views.stock_list),
     path('stock/transfer/add', views.stock_transfer),
-    path('stock/transfer/get', views.get_stock_transfer)
+    path('stock/transfer/get', views.get_stock_transfer),
+    path('stock/delete', views.stock_delete)
 
 ]
