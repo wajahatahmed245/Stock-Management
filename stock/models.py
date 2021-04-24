@@ -22,6 +22,7 @@ class Product(models.Model):
     brand_name = models.CharField(max_length=50)
     no_of_pieces = models.IntegerField()
     product_sku = models.TextField(unique=True)
+    price = models.FloatField()
     season = models.CharField(max_length=25)
     product_type = models.ForeignKey(Product_type, on_delete=models.CASCADE)
 

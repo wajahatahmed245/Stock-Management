@@ -54,6 +54,8 @@ def product_list(request):
             brand_name = request.data["brand_name"]
             no_of_pieces = request.data["no_of_pieces"]
             season = request.data["season"]
+            price = request.data["price"]
+
             if product_type == 2:
                 waist = request.data["waist"]
                 length = request.data["length"]
@@ -68,6 +70,7 @@ def product_list(request):
                     product_type=product_type,
                     season=request.data["season"],
                     product_sku=get_sku(type, stuff, color),
+                    price=price
                 )
                 product = ProductSerializer(data=product_data)
                 if product.is_valid():
@@ -98,6 +101,7 @@ def product_list(request):
                     product_type=product_type,
                     season=season,
                     product_sku=get_sku(type, stuff, color),
+                    price=price
                 )
                 product = ProductSerializer(data=product_data)
                 if product.is_valid():

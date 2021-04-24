@@ -28,6 +28,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_sku",
             "product_type",
             "season",
+            "price"
         ]
 
 
