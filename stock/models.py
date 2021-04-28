@@ -1,5 +1,7 @@
 from django.db import models
-from djongo.models import JSONField, ObjectIdField
+
+from djongo.models import JSONField
+from djongo.models import ObjectIdField
 
 
 class Snippet(models.Model):
@@ -11,7 +13,7 @@ class Snippet(models.Model):
 class Product(models.Model):
     _id = ObjectIdField()
     color = models.CharField(max_length=50)
-    product_size = JSONField()
+    product_parameters = JSONField()
     stuff = models.CharField(max_length=50)
     type = models.CharField(max_length=50)
     brand_name = models.CharField(max_length=50)

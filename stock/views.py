@@ -1,4 +1,3 @@
-import pymongo as pymongo
 from django.http import HttpResponse
 
 from rest_framework import status
@@ -55,10 +54,11 @@ def product_list(request):
             brand_name = request.data["brand_name"]
             season = request.data["season"]
             price = request.data["price"]
-            product_size = request.data["product_size"]
+            product_parameters = request.data["product_parameters"]
+
             product_data = dict(
                 color=color,
-                product_size=product_size,
+                product_parameters=product_parameters,
                 stuff=stuff,
                 type=type,
                 brand_name=brand_name,
@@ -67,6 +67,7 @@ def product_list(request):
                 product_sku=get_sku(type, stuff, color),
                 price=price
             )
+
             product = ProductSerializer(data=product_data)
             if product.is_valid():
                 product.save()
@@ -79,6 +80,7 @@ def product_list(request):
                     product_sku=product.instance.product_sku,
                     sold=sold,
                 )
+
                 stock = StockSerializer(data=stock_data)
                 if stock.is_valid():
                     stock.save()
@@ -98,16 +100,22 @@ def stock_list(request):
             user_info = token_management.get_info(authentication_token=token)
             stock_get = Stock.objects.filter(created_by=user_info[0])
             stock = StockSerializer(stock_get, many=True)
-            product_sku = Stock.objects.values_list('product_sku', flat=True).filter(created_by=user_info[0])
-            shirt_product = Product.objects.filter(product_type='shirt').filter(product_sku__in=product_sku)
+            product_sku = Stock.objects.values_list('product_sku', flat=True). \
+                filter(created_by=user_info[0])
+            shirt_product = Product.objects.filter(product_type='shirt'). \
+                filter(product_sku__in=product_sku)
             shirt_data = ProductSerializer(shirt_product, many=True)
-            pant_product = Product.objects.filter(product_type='pant').filter(product_sku__in=product_sku)
+            pant_product = Product.objects.filter(product_type='pant'). \
+                filter(product_sku__in=product_sku)
             pant_data = ProductSerializer(pant_product, many=True)
-            coat_product = Product.objects.filter(product_type='coat').filter(product_sku__in=product_sku)
+            coat_product = Product.objects.filter(product_type='coat'). \
+                filter(product_sku__in=product_sku)
             coat_data = ProductSerializer(coat_product, many=True)
 
             data = dict(
-                product_data=dict(shirts_data=shirt_data.data, pants_data=pant_data.data, coats_data=coat_data.data),
+                product_data=dict(shirts_data=shirt_data.data,
+                                  pants_data=pant_data.data,
+                                  coats_data=coat_data.data),
                 stock_data=stock.data)
             return Response(data)
         except Exception as error:
@@ -135,6 +143,7 @@ def get_stock_transfer(request):
             token_management = TokenManagement()
             user_info = token_management.get_info(authentication_token=token)
             stock_get = TransferredStock.objects.filter(seller=user_info[0])
+
             if stock_get:
                 transferred_stock = TransferredStockSerializer(stock_get, many=True)
                 return Response(transferred_stock.data)
