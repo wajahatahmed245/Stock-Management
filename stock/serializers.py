@@ -24,7 +24,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "stuff",
             "type",
             "brand_name",
-            "no_of_pieces",
             "product_sku",
             "product_type",
             "season",
@@ -36,12 +35,12 @@ class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
         fields = (
+            "_id",
             "created_at",
             "updated_at",
             "created_by",
             "product_sku",
-            "sold",
-            "product_id",
+            "sold"
         )
 
 
@@ -53,4 +52,4 @@ class TransferredStockSerializer(serializers.ModelSerializer):
             "updated_at",
             "seller",
             "vendor",
-            "stock_id")
+            "product_sku")

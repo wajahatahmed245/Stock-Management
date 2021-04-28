@@ -1,3 +1,4 @@
+import pymongo as pymongo
 from django.http import HttpResponse
 
 from rest_framework import status
@@ -52,60 +53,23 @@ def product_list(request):
             stuff = request.data["stuff"]
             type = request.data["type"]
             brand_name = request.data["brand_name"]
-            no_of_pieces = request.data["no_of_pieces"]
             season = request.data["season"]
             price = request.data["price"]
-
-            if product_type == 2:
-                waist = request.data["waist"]
-                length = request.data["length"]
-                size_data = {"waist": waist, "length": length}
-                product_data = dict(
-                    color=color,
-                    product_size=str(size_data),
-                    stuff=stuff,
-                    type=type,
-                    brand_name=request.data["brand_name"],
-                    no_of_pieces=request.data["no_of_pieces"],
-                    product_type=product_type,
-                    season=request.data["season"],
-                    product_sku=get_sku(type, stuff, color),
-                    price=price
-                )
-                product = ProductSerializer(data=product_data)
-                if product.is_valid():
-                    product.save()
-
-                    token_management = TokenManagement()
-                    data = authentication_token
-                    user_info = token_management.get_info(authentication_token=data)
-                    stock_data = dict(
-                        created_by=user_info[0],
-                        product_sku=product.instance.product_sku,
-                        product_id=product.instance.id,
-                        sold=sold,
-                    )
-                    stock = StockSerializer(data=stock_data)
-                    if stock.is_valid():
-                        stock.save()
-                        data = dict(product_data=product.data, stock_data=stock.data)
-                    return Response(data, status=status.HTTP_201_CREATED)
-            else:
-                product_data = dict(
-                    color=color,
-                    product_size=request.data["size"],
-                    stuff=stuff,
-                    type=type,
-                    brand_name=brand_name,
-                    no_of_pieces=no_of_pieces,
-                    product_type=product_type,
-                    season=season,
-                    product_sku=get_sku(type, stuff, color),
-                    price=price
-                )
-                product = ProductSerializer(data=product_data)
-                if product.is_valid():
-                    product.save()
+            product_size = request.data["product_size"]
+            product_data = dict(
+                color=color,
+                product_size=product_size,
+                stuff=stuff,
+                type=type,
+                brand_name=brand_name,
+                product_type=product_type,
+                season=season,
+                product_sku=get_sku(type, stuff, color),
+                price=price
+            )
+            product = ProductSerializer(data=product_data)
+            if product.is_valid():
+                product.save()
 
                 token_management = TokenManagement()
                 data = authentication_token
@@ -113,7 +77,6 @@ def product_list(request):
                 stock_data = dict(
                     created_by=user_info[0],
                     product_sku=product.instance.product_sku,
-                    product_id=product.instance.id,
                     sold=sold,
                 )
                 stock = StockSerializer(data=stock_data)
@@ -121,7 +84,7 @@ def product_list(request):
                     stock.save()
                     data = dict(product_data=product.data, stock_data=stock.data)
                 return Response(data, status=status.HTTP_201_CREATED)
-            return Response(product.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as error:
             return dict(message=str(error), success=False), 404
 
@@ -135,10 +98,17 @@ def stock_list(request):
             user_info = token_management.get_info(authentication_token=token)
             stock_get = Stock.objects.filter(created_by=user_info[0])
             stock = StockSerializer(stock_get, many=True)
-            product_id = Stock.objects.values_list('product_id', flat=True).filter(created_by=user_info[0])
-            product = Product.objects.filter(pk__in=product_id)
-            product = ProductSerializer(product, many=True)
-            data = dict(product_data=product.data, stock_data=stock.data)
+            product_sku = Stock.objects.values_list('product_sku', flat=True).filter(created_by=user_info[0])
+            shirt_product = Product.objects.filter(product_type='shirt').filter(product_sku__in=product_sku)
+            shirt_data = ProductSerializer(shirt_product, many=True)
+            pant_product = Product.objects.filter(product_type='pant').filter(product_sku__in=product_sku)
+            pant_data = ProductSerializer(pant_product, many=True)
+            coat_product = Product.objects.filter(product_type='coat').filter(product_sku__in=product_sku)
+            coat_data = ProductSerializer(coat_product, many=True)
+
+            data = dict(
+                product_data=dict(shirts_data=shirt_data.data, pants_data=pant_data.data, coats_data=coat_data.data),
+                stock_data=stock.data)
             return Response(data)
         except Exception as error:
             return dict(message=str(error), success=False), 404
@@ -172,18 +142,5 @@ def get_stock_transfer(request):
             transfer_stock = TransferredStock.objects.filter(vendor=user_info[0])
             transferred_stock = TransferredStockSerializer(transfer_stock, many=True)
             return Response(transferred_stock.data)
-        except Exception as error:
-            return dict(message=str(error), success=False), 404
-
-
-@api_view(["DELETE"])
-def stock_delete(request):
-    if request.method == "DELETE":
-        try:
-            user_ref = request.data["user_ref"]
-            product_id = Stock.objects.values_list('product_id', flat=True).filter(created_by=user_ref)
-            product = Product.objects.filter(pk__in=product_id)
-            product.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as error:
             return dict(message=str(error), success=False), 404

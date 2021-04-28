@@ -4,8 +4,6 @@ import requests
 
 from django.http import JsonResponse
 
-from stock.models import Product_type
-
 from stock_management.settings import ENV_VARIABLE
 
 from utils.jwt_setter import TokenManagement
@@ -48,17 +46,6 @@ class SimpleMiddleware:
                         ),
                         status=403,
                     )
-                product = Product_type.objects.all()
-                if not product:
-                    shirt = dict(product_name='shirt')
-                    pant = dict(product_name='pant')
-                    coat = dict(product_name='coat')
-                    hoodies = dict(product_name='hoodies')
-                    product_data = [shirt, pant, coat, hoodies]
-                    data_list = [Product_type(**vals) for vals in product_data]
-                    Product_type.objects.bulk_create(data_list)
-                    for data in data_list:
-                        data.save()
 
                 return None
             except Exception as error:
