@@ -20,12 +20,12 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "color",
-            "product_parameters",
+            "parameters",
             "stuff",
             "type",
             "brand_name",
             "product_sku",
-            "product_type",
+            "category",
             "season",
             "price"
         ]
@@ -40,7 +40,8 @@ class StockSerializer(serializers.ModelSerializer):
             "updated_at",
             "created_by",
             "product_sku",
-            "sold"
+            "sold",
+            "product_category"
         )
 
 

@@ -47,7 +47,7 @@ def product_list(request):
         try:
             authentication_token = request.headers.get("Authentication")
             sold = request.data["sold"]
-            product_type = request.data["product_type"]
+            category = request.data["category"]
             color = request.data["color"]
             stuff = request.data["stuff"]
             type = request.data["type"]
@@ -58,11 +58,11 @@ def product_list(request):
 
             product_data = dict(
                 color=color,
-                product_parameters=product_parameters,
+                parameters=product_parameters,
                 stuff=stuff,
                 type=type,
                 brand_name=brand_name,
-                product_type=product_type,
+                category=category,
                 season=season,
                 product_sku=get_sku(type, stuff, color),
                 price=price
@@ -79,6 +79,7 @@ def product_list(request):
                     created_by=user_info[0],
                     product_sku=product.instance.product_sku,
                     sold=sold,
+                    product_category=product.instance.category,
                 )
 
                 stock = StockSerializer(data=stock_data)
@@ -102,13 +103,13 @@ def stock_list(request):
             stock = StockSerializer(stock_get, many=True)
             product_sku = Stock.objects.values_list('product_sku', flat=True). \
                 filter(created_by=user_info[0])
-            shirt_product = Product.objects.filter(product_type='shirt'). \
+            shirt_product = Product.objects.filter(category='shirt'). \
                 filter(product_sku__in=product_sku)
             shirt_data = ProductSerializer(shirt_product, many=True)
-            pant_product = Product.objects.filter(product_type='pant'). \
+            pant_product = Product.objects.filter(category='pant'). \
                 filter(product_sku__in=product_sku)
             pant_data = ProductSerializer(pant_product, many=True)
-            coat_product = Product.objects.filter(product_type='coat'). \
+            coat_product = Product.objects.filter(category='coat'). \
                 filter(product_sku__in=product_sku)
             coat_data = ProductSerializer(coat_product, many=True)
 
