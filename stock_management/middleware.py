@@ -1,9 +1,12 @@
 import json
 
 import requests
+
 from django.http import JsonResponse
 
 from stock_management.settings import ENV_VARIABLE
+
+from utils.jwt_setter import TokenManagement
 
 
 class SimpleMiddleware:
@@ -24,6 +27,16 @@ class SimpleMiddleware:
                 response = requests.request("POST", url, headers=headers, data=payload)
 
                 user_info = json.loads(response.text)
+                if user_info.get('success'):
+                    token_management = TokenManagement()
+                    if not token_management.get_info(authentication_token=authentication_token):
+                        user_reference = user_info.get("user_info").get("user_ref")
+                        user_type_name = user_info.get("user_info").get("user_type")
+                        user_name = user_info.get("user_info").get("name")
+                        token_management.set_info(authentication_token=authentication_token, time=user_info.get('TTL'),
+                                                  user_reference=user_reference, user_type_name=user_type_name,
+                                                  user_name=user_name,
+                                                  )
                 user = user_info["user_info"].get("user_type")
                 if user.lower() == "buyer":
                     return JsonResponse(
@@ -33,6 +46,7 @@ class SimpleMiddleware:
                         ),
                         status=403,
                     )
+
                 return None
             except Exception as error:
                 return JsonResponse(

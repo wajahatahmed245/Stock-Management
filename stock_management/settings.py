@@ -83,12 +83,8 @@ WSGI_APPLICATION = 'stock_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'djongo',
         'NAME': 'stock_management',
-        'USER': 'stock_management_user',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
     }
 }
 
